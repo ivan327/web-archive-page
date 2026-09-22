@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="TikTok Web Archive — поиск и просмотр сохранённых снимков страниц TikTok." />
+  <title>TikTok Web Archive</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#top" aria-label="TikTok Web Archive">
+      <span class="brand-mark">♪</span>
+      <span>TikTok <b>Web Archive</b></span>
+    </a>
+    <nav>
+      <a href="#search">Поиск</a>
+      <a href="#how-it-works">Как это работает</a>
+      <a class="github-link" href="https://github.com/ivan327/web-archive-page" target="_blank" rel="noreferrer">GitHub ↗</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow"><span></span> Открытый архив</p>
+        <h1>Сохраняем<br /><em>историю TikTok.</em></h1>
+        <p class="hero-text">Находите сохранённые версии профилей, видео и страниц TikTok по URL или имени пользователя.</p>
+        <form class="search-form" id="search" role="search">
+          <label class="sr-only" for="search-input">Поиск по архиву</label>
+          <input id="search-input" type="search" placeholder="Вставьте ссылку TikTok или @username" autocomplete="off" />
+          <button type="submit">Найти архив</button>
+        </form>
+        <p class="hint">Например: <button class="example" type="button">@tiktok</button> или <button class="example" type="button">tiktok.com/@creator/video/...</button></p>
+      </div>
+      <div class="hero-card" aria-hidden="true">
+        <div class="scan-line"></div>
+        <div class="card-top"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span><span class="address">archive.tiktok</span></div>
+        <div class="profile-placeholder"><span>♪</span></div>
+        <div class="fake-line wide"></div><div class="fake-line"></div>
+        <div class="fake-stats"><b>1.2M<br /><small>подписчиков</small></b><b>48.6M<br /><small>лайков</small></b></div>
+        <div class="fake-grid"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        <div class="saved-badge">● Снимок сохранён</div>
+      </div>
+    </section>
+
+    <section class="stats" aria-label="Статистика архива">
+      <div><strong>24,891</strong><span>сохранённых страниц</span></div>
+      <div><strong>8,402</strong><span>профиля в архиве</span></div>
+      <div><strong>2020—2026</strong><span>период хранения</span></div>
+      <div><strong>99.9%</strong><span>доступность архива</span></div>
+    </section>
+
+    <section class="content-section" id="results">
+      <div class="section-heading"><div><p class="eyebrow">Последние снимки</p><h2>Недавно сохранено</h2></div><button class="filter-button" id="filter-button">Все типы ▾</button></div>
+      <div class="archive-grid" id="archive-grid">
+        <article class="archive-card" data-type="Профиль"><div class="thumbnail thumb-one"><span>♪</span><small>2026 / 09 / 21</small></div><div class="archive-info"><div><span class="tag profile-tag">Профиль</span><span class="time">2 часа назад</span></div><h3>@tiktok</h3><p>Официальный профиль TikTok</p><a href="#" class="view-link">Открыть снимок →</a></div></article>
+        <article class="archive-card" data-type="Видео"><div class="thumbnail thumb-two"><span>▶</span><small>2026 / 09 / 20</small></div><div class="archive-info"><div><span class="tag video-tag">Видео</span><span class="time">1 день назад</span></div><h3>@creator_daily</h3><p>Видео · 12.4M просмотров</p><a href="#" class="view-link">Открыть снимок →</a></div></article>
+        <article class="archive-card" data-type="Профиль"><div class="thumbnail thumb-three"><span>✦</span><small>2026 / 09 / 18</small></div><div class="archive-info"><div><span class="tag profile-tag">Профиль</span><span class="time">3 дня назад</span></div><h3>@music_archive</h3><p>Профиль автора и публикации</p><a href="#" class="view-link">Открыть снимок →</a></div></article>
+      </div>
+      <p class="empty-state" id="empty-state" hidden>Ничего не найдено. Попробуйте другой запрос.</p>
+    </section>
+
+    <section class="how" id="how-it-works"><p class="eyebrow">Просто и прозрачно</p><h2>Как работает архив</h2><div class="steps"><div class="step"><b>01</b><h3>Найдите</h3><p>Введите ссылку на страницу TikTok или имя пользователя.</p></div><div class="step"><b>02</b><h3>Выберите дату</h3><p>Посмотрите доступные снимки страницы в хронологическом порядке.</p></div><div class="step"><b>03</b><h3>Откройте</h3><p>Изучите сохранённую версию и сравните изменения.</p></div></div></section>
+  </main>
+  <footer><span>© 2026 TikTok Web Archive</span><span>Проект для сохранения публичной веб-истории</span></footer>
+  <script src="script.js"></script>
+</body>
+</html>

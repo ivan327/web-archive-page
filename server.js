@@ -58,6 +58,92 @@ async function readLimitedBody(response) {
   return Buffer.concat(chunks).toString('utf8');
 }
 
+function normalizeUrlForSearch(url) {
+  const normalized = new URL(url);
+  normalized.hash = '';
+  if (!normalized.pathname || normalized.pathname === '/') {
+    normalized.pathname = '/';
+  }
+  return normalized.toString();
+}
+
+function parseWaybackTimestamp(timestamp) {
+  if (!timestamp || timestamp.length < 14) return null;
+
+  const year = timestamp.slice(0, 4);
+  const month = timestamp.slice(4, 6);
+  const day = timestamp.slice(6, 8);
+  const hour = timestamp.slice(8, 10);
+  const minute = timestamp.slice(10, 12);
+  const second = timestamp.slice(12, 14);
+
+  const date = new Date(`${year}-${month}-${day}T${hour}:${minute}:${second}Z`);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function formatWaybackTimestamp(timestamp) {
+  const date = parseWaybackTimestamp(timestamp);
+  if (!date) return timestamp;
+  return new Intl.DateTimeFormat('ru-RU', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+    timeZone: 'UTC'
+  }).format(date);
+}
+
+async function searchWayback(url) {
+  const target = normalizeUrlForSearch(url);
+  const cdxUrl = new URL('https://web.archive.org/cdx/search/cdx');
+  cdxUrl.searchParams.set('url', target);
+  cdxUrl.searchParams.set('output', 'json');
+  cdxUrl.searchParams.set('fl', 'timestamp,original,statuscode,mimetype,sha1');
+  cdxUrl.searchParams.set('filter', 'statuscode:200');
+  cdxUrl.searchParams.set('limit', '10');
+
+  const response = await fetch(cdxUrl, {
+    headers: { 'User-Agent': 'Mozilla/5.0 (compatible; WebArchiveBot/1.0)' },
+    signal: AbortSignal.timeout(20_000)
+  });
+
+  if (!response.ok) {
+    throw new Error(`Wayback API вернул статус ${response.status}`);
+  }
+
+  const payload = await response.json();
+  if (!Array.isArray(payload) || payload.length <= 1) {
+    return [];
+  }
+
+  const rows = payload.slice(1);
+  return rows
+    .filter((row) => Array.isArray(row) && row[0])
+    .map((row) => {
+      const [timestamp, original, statuscode, mimetype, sha1] = row;
+      const date = parseWaybackTimestamp(timestamp);
+      return {
+        timestamp,
+        original: original || target,
+        statusCode: Number(statuscode || 200),
+        mimetype: mimetype || 'text/html',
+        sha1: sha1 || null,
+        date: date ? date.toISOString() : null,
+        label: date ? formatWaybackTimestamp(timestamp) : timestamp,
+        archiveUrl: `https://web.archive.org/web/${timestamp}/${original}`,
+      };
+    })
+    .slice(0, 10);
+}
+
+function buildArchiveLinks(url) {
+  const full = normalizeUrlForSearch(url);
+  return {
+    wayback: `https://web.archive.org/web/*/${full}`,
+    memento: `https://memgator.appspot.com/timemap/json/${full}`,
+    archiveToday: `https://archive.today/submit/?url=${encodeURIComponent(full)}`,
+    googleCache: `https://webcache.googleusercontent.com/search?q=cache:${encodeURIComponent(full)}`,
+  };
+}
+
 async function resolveUrl(sourceUrl) {
   let current = await assertSafeUrl(sourceUrl);
   const redirects = [];
@@ -85,7 +171,28 @@ async function resolveUrl(sourceUrl) {
 
 function id() { return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`; }
 
-app.get('/api/health', (_req, res) => res.json({ ok: true, service: 'tiktok-web-archive' }));
+app.get('/api/health', (_req, res) => res.json({ ok: true, service: 'web-archive-page' }));
+
+app.get('/api/search', async (req, res) => {
+  const rawUrl = String(req.query.url || '').trim();
+  if (!rawUrl) {
+    return res.status(400).json({ error: 'Передайте URL в параметре url' });
+  }
+
+  try {
+    const url = await assertSafeUrl(rawUrl);
+    const snapshots = await searchWayback(url);
+    res.json({
+      url: url.toString(),
+      total: snapshots.length,
+      snapshots,
+      archiveLinks: buildArchiveLinks(url),
+      source: 'wayback'
+    });
+  } catch (error) {
+    res.status(400).json({ error: error.message || 'Не удалось найти архивные копии' });
+  }
+});
 
 app.post('/api/archive', async (req, res) => {
   const sourceUrl = String(req.body?.url || '').trim();
